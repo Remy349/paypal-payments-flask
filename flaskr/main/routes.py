@@ -1,7 +1,8 @@
 import os
 import requests
 import base64
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, redirect, render_template, \
+        request, url_for
 
 bp = Blueprint("main", __name__)
 
@@ -11,7 +12,7 @@ def index():
     return render_template("main/index.html")
 
 
-@bp.route("/create-order", methods=["GET"])
+@bp.route("/create-order", methods=["POST"])
 def create_order():
     api_url = os.getenv("PAYPAL_API_URL")
     client_id = os.getenv("PAYPAL_CLIENT_ID")
@@ -94,7 +95,7 @@ def capture_order():
 
 @bp.route("/cancel-order", methods=["GET"])
 def cancel_order():
-    return "Cancel Order"
+    return redirect(url_for("main.index"))
 
 
 def get_access_token(api_url, client_id, client_secret):
