@@ -1,6 +1,6 @@
 import os
 import requests
-from flask import Blueprint, redirect, render_template, url_for
+from flask import Blueprint, jsonify, render_template, url_for
 
 bp = Blueprint("main", __name__)
 
@@ -12,17 +12,26 @@ def index():
 
 @bp.route("/create-order", methods=["GET"])
 def create_order():
+    client = os.getenv("PAYPAL_API_CLIENT")
+    secret = os.getenv("PAYPAL_API_SECRET")
+
     data = {
         "intent": "CAPTURE",
         "purchase_units": [
             {
-                "amount": {"currency_code": "USD", "value": "100.00"},
+                "amount": {
+                    "currency_code": "USD",
+                    "value": "100.00",
+                },
                 "items": [
                     {
                         "name": "Test",
                         "description": "Test para una compra usando la RESTApi de PayPal",
                         "quantity": "1",
-                        "unit_amount": {"currency_code": "USD", "value": "100.00"},
+                        "unit_amount": {
+                            "currency_code": "USD",
+                            "value": "100.00",
+                        },
                     }
                 ],
             }
@@ -33,31 +42,39 @@ def create_order():
                     "brand_name": "Mi tienda de prueba",
                     "landing_page": "NO_PREFERENCE",
                     "user_action": "PAY_NOW",
-                    "return_url": f"{redirect(url_for('main.capture_order'))}",
-                    "cancel_url": f"{redirect(url_for('main.cancel_order'))}",
+                    "return_url": "/capture-order",
+                    "cancel_url": "/cancel-order",
                 }
             }
         },
     }
 
-    client = os.getenv("PAYPAL_API_CLIENT")
-    secret = os.getenv("PAYPAL_API_SECRET")
-
     response = requests.post(
         f"{os.getenv('PAYPAL_API_URL')}/v1/oauth2/token",
-        headers={"Accept": "application/json"},
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
         auth=(client, secret),
         data={"grant_type": "client_credentials"},
     )
 
-    print(response.json())
+    response_json = response.json()
 
-    # requests.post(
-    #     f"{os.getenv('PAYPAL_API_URL')}/v2/checkout/orders",
-    #     data=data,
-    # )
+    access_token = response_json["access_token"]
 
-    return {"data": data}
+    order_response = requests.post(
+        f"{os.getenv('PAYPAL_API_URL')}/v2/checkout/orders",
+        data=data,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}",
+        },
+    )
+
+    print(order_response.content)
+
+    return jsonify(data)
 
 
 @bp.route("/capture-order", methods=["GET"])
