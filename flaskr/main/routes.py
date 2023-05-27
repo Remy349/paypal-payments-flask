@@ -19,18 +19,54 @@ def create_order():
 
     access_token = get_access_token(api_url, client_id, client_secret)
 
-    # order_response = requests.post(
-    #     f"{os.getenv('PAYPAL_API_URL')}/v2/checkout/orders",
-    #     data=data,
-    #     headers={
-    #         "Content-Type": "application/json",
-    #         "Authorization": f"Bearer {access_token}",
-    #     },
-    # )
+    json = {
+        "intent": "CAPTURE",
+        "purchase_units": [
+            {
+                "items": [
+                    {
+                        "name": "Testing Payment",
+                        "description": "Testing a payment using PayPal",
+                        "quantity": "1",
+                        "unit_amount": {
+                            "currency_code": "USD",
+                            "value": "100.00",
+                        },
+                    },
+                ],
+                "amount": {
+                    "currency_code": "USD",
+                    "value": "100.00",
+                    "breakdown": {
+                        "item_total": {
+                            "currency_code": "USD",
+                            "value": "100.00",
+                        }
+                    },
+                },
+            }
+        ],
+        "application_context": {
+            "brand_name": "My testing app",
+            "landing_page": "NO_PREFERENCE",
+            "user_action": "PAY_NOW",
+            "return_url": "http://localhost:5000/capture-order",
+            "cancel_url": "http://localhost:5000/cancel-order",
+        },
+    }
 
-    # print(order_response.json())
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {access_token}",
+    }
 
-    return jsonify("create-order")
+    response = requests.post(
+        f"{api_url}/v2/checkout/orders",
+        headers=headers,
+        json=json,
+    )
+
+    return jsonify(response.json())
 
 
 @bp.route("/capture-order", methods=["GET"])
