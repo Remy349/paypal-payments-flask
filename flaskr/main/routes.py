@@ -1,8 +1,14 @@
 import os
 import requests
 import base64
-from flask import Blueprint, jsonify, redirect, render_template, \
-        request, url_for
+from flask import (
+    Blueprint,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 
 bp = Blueprint("main", __name__)
 
