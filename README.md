@@ -25,7 +25,7 @@ $ git clone https://github.com/Remy349/paypal-payments-flask
 
 ```Shell
 $ cd paypal-payments-flask
-# It may be just pip depending on how you installed Python on your computer.
+# It may be just python depending on how you installed Python on your computer.
 $ python3 -m venv venv
 
 # Linux
